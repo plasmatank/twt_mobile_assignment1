@@ -74,7 +74,7 @@ class FeedbackService with AsyncTimer {
   // 接下来我们要获取微北洋论坛的帖子
   // 请调用这个函数，并查看服务器返回了什么
   // [!] 在调用这个之前请先请求 token！！！
-  static getPosts() async {
+  static Future<List<Post>> getPosts({int page = 1}) async {
     var response = await feedbackDio.get(
       'posts',
       queryParameters: {
@@ -93,7 +93,7 @@ class FeedbackService with AsyncTimer {
         'page_size': '10',
 
         // 这个是获取第几页的帖子，第一次填 0 就可以了，后续我们要在每次调用的时候给他加一
-        'page': '0',
+        'page': '${page}'
       },
     );
 
@@ -109,6 +109,7 @@ class FeedbackService with AsyncTimer {
     for (Map<String, dynamic> json in response.data['data']['list']) {
       list.add(Post.fromJson(json));
     }
+    print(page);
     return list;
   }
 }
