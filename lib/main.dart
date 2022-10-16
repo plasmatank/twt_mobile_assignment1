@@ -39,33 +39,110 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+
+  void initState() {
+      super.initState();
+      SealedFresh.add(Refresh);
+      /*
+      _MyHomePageState.scrollController.addListener(() async 
+      { 
+        if(scrollController.position.pixels>scrollController.position.maxScrollExtent-40)
+        {
+          current_page++;
+          postList = await FeedbackService.getPosts(page:current_page); Refresh();
+        }
+      });
+      */
+  }
+
   void Refresh() {
     setState((() {
-      postList;
+      print(postList[0].title);
     }));
   }
 
-  int length = 10;
-  
-  static List<Post> postList = [Post(id:114514,title:"试着刷新一下吧",content:"如题")];
+  Future<void> OnRefresh() async
+  {
+    print("Refreshing...");
+    postList = await FeedbackService.getPosts(page:current_page); 
+    Refresh();
+  }
 
+  int length = 10;
+
+  static int current_page = 1;
+  
+  static List<Post> postList = [];
+
+  static ScrollController scrollController = new ScrollController();
+
+  static List<Function> SealedFresh = [];
+  @override
+    Widget build(BuildContext context) {
+        return Container(
+            child:Scaffold(
+                appBar: AppBar(
+                    title:Text("DemoBBS"),
+                    actions: <Widget>[
+                          new IconButton(
+                          icon: new Icon(Icons.arrow_back),
+                          tooltip: 'Go Back',
+                          onPressed: () async {if (current_page > 1) {current_page--; _MyHomePageState.postList = await FeedbackService.getPosts(page:current_page); Refresh();}}),
+                          new IconButton(
+                          icon: new Icon(Icons.arrow_forward),
+                          tooltip: 'Go Forward',
+                          onPressed: () async {current_page++; _MyHomePageState.postList = await FeedbackService.getPosts(page:current_page); Refresh();}),
+                          ],
+                ),
+                body:
+                RefreshIndicator(
+                    child: ListView.builder(
+                        controller: scrollController,
+                        itemCount: length,
+                        itemBuilder: (context,index){
+                            Widget tip = Text("");
+                            if(index == length-1){
+                                tip = Text("没有更多了");
+                            } 
+                            return Column(
+                                children: <Widget>[
+                                    PostCard(postList[index]),
+                                    Divider(thickness: 1, height: 2,),
+                                    tip
+                                ],
+                            );
+                        },   
+                    ), 
+                    onRefresh:OnRefresh
+                )
+            )
+        );
+    }
+}
+
+class HomePageFunctions
+{
+  static init() async
+  {
+    _MyHomePageState.postList = await FeedbackService.getPosts();
+  }
+}
+
+    /*
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(title: Text("DemoBBS"),),
       body: SafeArea(
         child: ListView(
-          children: <Widget>[
-            Text(
-              '\n这就是个示例项目，请打开wpy_service看看吧\n我们最终要实现一个简易版的仅可读的微北洋论坛\n'
-              '你需要完整地写好卡片的ui，并补充好网络请求部分，\n最后以合适的方式实现数据的获取\n'
-              '遇到困难的时候请尽可能前往工作室寻求帮助\n',
-            ),
+          children: <Widget>[            
             FutureBuilder
             (
               future: FeedbackService.getTokenByPassword(),
               builder: (BuildContext context, AsyncSnapshot<String> data) {
+                SealedFresh.length == 0 ? SealedFresh.add(Refresh) : (){};
                 if (data.data != null) {
-                  String? str = data.data;
+                  String? str = data.data;                  
                   return Text("${str}", style: TextStyle(fontSize: 20),);
                 }
                 else {
@@ -76,7 +153,7 @@ class _MyHomePageState extends State<MyHomePage> {
             FloatingActionButton(
             child: new Icon(Icons.refresh),
             tooltip: 'Refresh posts.',
-            onPressed: () async {postList = await FeedbackService.getPosts(); Refresh();}),       
+            onPressed: () async {postList = await FeedbackService.getPosts(); Refresh(); }),       
             ...List.generate(length, (index) => PostCard(postList[index]))
           ],
         ),
@@ -84,11 +161,4 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
-
-class HomePageFunctions
-{
-  static init() async
-  {
-    _MyHomePageState.postList = await FeedbackService.getPosts();
-  }
-}
+*/
